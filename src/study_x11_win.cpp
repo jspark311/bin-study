@@ -118,32 +118,74 @@ GfxUITabbedContentPane _main_nav(
 /*******************************************************************************
 * The overview pane
 *******************************************************************************/
-GfxUIGroup _main_nav_overview(0, 0, 0, 0);
+GfxUIGroup main_nav_overview(0, 0, 0, 0);
 
-C3PValue _c3p_value_bin(bin_field, sizeof(bin_field));
+C3PValue _c3p_value_bin(nullptr, 0);
 
 GfxUIC3PValue _value_render_bin(
   &_c3p_value_bin,
   GfxUILayout(
-    50, 50,
-    240, 32,
-    0, ELEMENT_MARGIN, 0, ELEMENT_MARGIN,
-    0, 0, 0, 0               // Border_px(t, b, l, r)
+    10, 30,
+    800, 600,
+    ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
+    0, 0, 0, 0   // Border_px(t, b, l, r)
   ), c3pvalue_style,
   (GFXUI_C3PVAL_FLAG_SHOW_TYPE_INFO)
 );
 
 
+GfxUITextButton button_paste_from_selbuf(
+  GfxUILayout(
+    (_value_render_bin.elementPosX() + _value_render_bin.elementWidth() + 20), _value_render_bin.elementPosY(),
+    120, 25,
+    ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
+    0, 0, 0, 0
+  ),
+  GfxUIStyle(0, // bg
+    0xFFFFFF,   // border
+    0xFFFFFF,   // header
+    0x10FF10,   // active
+    0xA0A0A0,   // inactive
+    0xFFFFFF,   // selected
+    0x202020,   // unselected
+    1           // t_size
+  ),
+  "Selection Buf",
+  (GFXUI_BUTTON_FLAG_MOMENTARY)
+);
+
+GfxUITextButton button_paste_from_clpbrd(
+  GfxUILayout(
+    button_paste_from_selbuf.elementPosX(), (button_paste_from_selbuf.elementPosY() + button_paste_from_selbuf.elementHeight() + 1),
+    button_paste_from_selbuf.elementWidth(), button_paste_from_selbuf.elementHeight(),
+    0, ELEMENT_MARGIN, 0, ELEMENT_MARGIN,
+    0, 0, 0, 0
+  ),
+  GfxUIStyle(0, // bg
+    0xFFFFFF,   // border
+    0xFFFFFF,   // header
+    0x10FF10,   // active
+    0xA0A0A0,   // inactive
+    0xFFFFFF,   // selected
+    0x202020,   // unselected
+    1           // t_size
+  ),
+  "Clipboard",
+  (GFXUI_BUTTON_FLAG_MOMENTARY)
+);
+
+
+
 /*******************************************************************************
 * The contexts pane
 *******************************************************************************/
-GfxUIGroup _main_nav_contexts(0, 0, 0, 0);
+GfxUIGroup main_nav_contexts(0, 0, 0, 0);
 
 
 /*******************************************************************************
 * The settings pane
 *******************************************************************************/
-GfxUIGroup _main_nav_settings(0, 0, 0, 0);
+GfxUIGroup main_nav_settings(0, 0, 0, 0);
 
 GfxUITextButton _button_0(
   GfxUILayout(
@@ -321,7 +363,7 @@ GfxUISlider _slider_4(
 /*******************************************************************************
 * The internals pane, which may not be rendered.
 *******************************************************************************/
-GfxUIGroup _main_nav_internals(0, 0, 0, 0);
+GfxUIGroup main_nav_internals(0, 0, 0, 0);
 
 C3PValue _c3p_value_ident((Identity*) &ident_uuid);
 
@@ -362,8 +404,11 @@ GfxUIKeyValuePair _kvp_render_main_conf(
 /*******************************************************************************
 * Callbacks and other non-class functions
 *******************************************************************************/
+static MainGuiWindow* todo_shim = nullptr;
 
 void ui_value_change_callback(GfxUIElement* element) {
+  if (nullptr == todo_shim) return;   // Bailout
+
   if (element == ((GfxUIElement*) &_slider_1)) {
     c3p_log(LOG_LEV_INFO, __PRETTY_FUNCTION__, "Slider-1 %.2f", (double) _slider_1.value());
   }
@@ -373,6 +418,18 @@ void ui_value_change_callback(GfxUIElement* element) {
   else if (element == ((GfxUIElement*) &_slider_3)) {
     c3p_log(LOG_LEV_INFO, __PRETTY_FUNCTION__, "Slider-3 %.2f", (double) _slider_3.value());
   }
+
+  else if (element == ((GfxUIElement*) &button_paste_from_clpbrd)) {
+    if (button_paste_from_clpbrd.pressed()) {
+      todo_shim->request_clipboard();
+    }
+  }
+  else if (element == ((GfxUIElement*) &button_paste_from_selbuf)) {
+    if (button_paste_from_selbuf.pressed()) {
+      todo_shim->request_selection_buffer();
+    }
+  }
+
   else {
     c3p_log(LOG_LEV_INFO, __PRETTY_FUNCTION__, "VALUE_CHANGE %p", element);
   }
@@ -386,36 +443,39 @@ void ui_value_change_callback(GfxUIElement* element) {
 int8_t MainGuiWindow::createWindow() {
   int8_t ret = _init_window();
   if (0 == ret) {
+    todo_shim = this;
     map_button_inputs(mouse_buttons, sizeof(mouse_buttons) / sizeof(mouse_buttons[0]));
     _overlay.reallocate();
 
     // Assemble the overview pane...
-    _main_nav_overview.add_child(&_value_render_bin);
+    main_nav_overview.add_child(&_value_render_bin);
+    main_nav_overview.add_child(&button_paste_from_clpbrd);
+    main_nav_overview.add_child(&button_paste_from_selbuf);
 
     // Assemble the contexts pane...
-    //_main_nav_contexts.add_child(&_txt_area_0);
+    //main_nav_contexts.add_child(&_txt_area_0);
 
     // Assemble the contexts pane...
-    _main_nav_settings.add_child(&_button_0);
-    _main_nav_settings.add_child(&_button_1);
-    _main_nav_settings.add_child(&_button_2);
-    _main_nav_settings.add_child(&_button_3);
-    _main_nav_settings.add_child(&_slider_0);
-    _main_nav_settings.add_child(&_slider_1);
-    _main_nav_settings.add_child(&_slider_2);
-    _main_nav_settings.add_child(&_slider_3);
-    _main_nav_settings.add_child(&_slider_4);
+    main_nav_settings.add_child(&_button_0);
+    main_nav_settings.add_child(&_button_1);
+    main_nav_settings.add_child(&_button_2);
+    main_nav_settings.add_child(&_button_3);
+    main_nav_settings.add_child(&_slider_0);
+    main_nav_settings.add_child(&_slider_1);
+    main_nav_settings.add_child(&_slider_2);
+    main_nav_settings.add_child(&_slider_3);
+    main_nav_settings.add_child(&_slider_4);
 
     // Assemble the internals pane...
-    _main_nav_internals.add_child(&_value_render_ident);
-    _main_nav_internals.add_child(&_kvp_render_main_conf);
+    main_nav_internals.add_child(&_value_render_ident);
+    main_nav_internals.add_child(&_kvp_render_main_conf);
 
     // Adding the contant panes will cause the proper screen co-ords to be imparted
     //   to the group objects. We can then use them for element flow.
-    _main_nav.addTab("Overview", &_main_nav_overview, true);
-    _main_nav.addTab("Contexts", &_main_nav_contexts);
-    _main_nav.addTab("Settings", &_main_nav_settings);
-    _main_nav.addTab("Internals", &_main_nav_internals);
+    _main_nav.addTab("Overview", &main_nav_overview, true);
+    _main_nav.addTab("Contexts", &main_nav_contexts);
+    _main_nav.addTab("Settings", &main_nav_settings);
+    _main_nav.addTab("Internals", &main_nav_internals);
 
     // Add the whole mess to the root GfxUI element, the presence of which is an
     //   organizational formality of C3Px11Window.
@@ -423,6 +483,8 @@ int8_t MainGuiWindow::createWindow() {
 
     _slider_0.value(0.5);
     _refresh_period.reset();
+
+    _c3p_value_bin.set(bin_field.string(), bin_field.length(), TCode::BINARY);
     setCallback(ui_value_change_callback);
   }
   return ret;
@@ -451,7 +513,18 @@ int8_t MainGuiWindow::render_overlay() {
 */
 int8_t MainGuiWindow::render(bool force) {
   int8_t ret = 0;
-  if (force) {
+  uint8_t* render_ptr = nullptr;
+  uint32_t render_len = 0;
+  if (0 != _c3p_value_bin.get_as(&render_ptr, &render_len)) {
+    // TODO: Maybe log or set some special state?
+  }
+  const bool BLOB_CHANGED = (bin_field.string() != render_ptr);
+  if (BLOB_CHANGED) {
+    c3p_log(LOG_LEV_DEBUG, __PRETTY_FUNCTION__, "BLOB_CHANGED");
+    _c3p_value_bin.set(bin_field.string(), bin_field.length(), TCode::BINARY);
+  }
+
+  if (force | BLOB_CHANGED) {
     // TODO: Example bottom-float logic that (although reliable) is uncommonly
     //   brittle. Even for PoC code.
     // This is one of the many TODOs that will be resolved by a simple element
@@ -505,12 +578,14 @@ int8_t MainGuiWindow::poll() {
             unsigned long size;
             XGetWindowProperty(e.xselection.display, e.xselection.requestor, e.xselection.property, 0L,(~0L), 0, AnyPropertyType, &target, &format, &size, &ele_count, &data);
             if ((target == UTF8) || (target == XA_STRING)) {
-              StringBuilder deep_copy(data, size);
-              c3p_log(LOG_LEV_DEBUG, __PRETTY_FUNCTION__, &deep_copy);
+              // Deep-copy the clipboard data into the blob buffer.
+              bin_field.clear();
+              bin_field.concat(data, size);
+              c3p_log(LOG_LEV_INFO, __PRETTY_FUNCTION__, "Set blob from clipboard (%d bytes).", size);
               XFree(data);
             }
             else {
-              c3p_log(LOG_LEV_DEBUG, __PRETTY_FUNCTION__, "target: %d", (int) target);
+              c3p_log(LOG_LEV_NOTICE, __PRETTY_FUNCTION__, "target: %d", (int) target);
             }
             XDeleteProperty(e.xselection.display, e.xselection.requestor, e.xselection.property);
           }
@@ -593,12 +668,9 @@ int8_t MainGuiWindow::poll() {
           }
           else if ((keysym == XK_Control_L) | (keysym == XK_Control_R)) {
             _modifiers.set(STUDY_GUI_MOD_CTRL_HELD);
-            //c3p_log(LOG_LEV_DEBUG, __PRETTY_FUNCTION__, "CTRL press");
-            _request_clipboard();
           }
           else if ((keysym == XK_Alt_L) | (keysym == XK_Alt_R)) {
             _modifiers.set(STUDY_GUI_MOD_ALT_HELD);
-            _request_selection_buffer();
           }
           else {
             c3p_log(LOG_LEV_DEBUG, __PRETTY_FUNCTION__, "Key press: %s (%s)", buf, XKeysymToString(keysym));

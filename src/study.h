@@ -43,9 +43,6 @@
 /*******************************************************************************
 * Limbo (TODO)
 *******************************************************************************/
-//extern void* gui_thread_handler(void*);
-
-
 // TODO: This _must_ be uint32 until I promote the CONFIG option into C3P and
 //   provide this typedef from that altitude.
 // No one is going to use C3P's Image classes to handle X/Y axis coordinates in
@@ -68,7 +65,15 @@ enum class StudyConfKey : uint16_t {
 
 
 /*******************************************************************************
-* This is our main window, and what it tracks
+* This is our one (only) window, and what it tracks.
+* This is subtly different from the root GfxnUI element which the C3Px11Window
+*   contains by composition.
+* C3Px11Window is fundamentally an I/O class, and (consistent with C3P's
+*   standards) has a poll() function to facilitate the carving of compute on
+*   the chronological plane. On linux, that poll() function will be called by
+*   a thread devoted to each instantiated C3Px11Window.
+* Because this program is not designed to run with multiple real windows, we
+*   only define one kind.
 *******************************************************************************/
 class MainGuiWindow : public C3Px11Window {
   public:
@@ -108,7 +113,7 @@ class MainGuiWindow : public C3Px11Window {
 *******************************************************************************/
 extern IdentityUUID ident_uuid;
 extern ConfRecordValidation<StudyConfKey> main_conf;
-extern uint8_t bin_field[128];  // TODO: Should be uint8_t*, and allocatable.
+extern StringBuilder bin_field;   // The blob we are studying.
 
 
 #endif  // __BLOBSTUDY_HEADER_H__

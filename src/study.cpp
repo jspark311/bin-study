@@ -8,38 +8,40 @@ using namespace std;   // Flat namespace. Everything is classed out.
 
 #include "study.h"   // Main program header
 
+
+/*******************************************************************************
+* Statics
+*******************************************************************************/
 /*
 * The program has a set of configurations that it defines and loads at runtime.
 * This defines everything required to handle that conf fluidly and safely.
 */
 // Then, we bind those enum values each to a type code, and to a semantic string
 //   suitable for storage or transmission to a counterparty.
-const EnumDef<StudyConfKey> CONF_KEY_LIST[] = {
+static const EnumDef<StudyConfKey> CONF_KEY_LIST[] = {
   { StudyConfKey::SHOW_PANE_INTERNALS,   "SHOW_PANE_INTERNALS",    0, (uint8_t) TCode::BOOLEAN    },
   { StudyConfKey::INVALID,               "INVALID",                (ENUM_FLAG_MASK_INVALID_CATCHALL), 0}
 };
 
 // The top-level enum wrapper binds the above definitions into a tidy wad
 //   of contained concerns.
-const EnumDefList<StudyConfKey> CONF_LIST(
+static const EnumDefList<StudyConfKey> CONF_LIST(
   CONF_KEY_LIST, (sizeof(CONF_KEY_LIST) / sizeof(CONF_KEY_LIST[0])),
   "MainConf"
 );
 
-// Create the conf object. Load it later.
-ConfRecordValidation<StudyConfKey> main_conf(0, &CONF_LIST);
-
 
 /*******************************************************************************
-* Globals
+* Globals used outside of this translation unit.
 *******************************************************************************/
 StringBuilder  conf_path;
 StringBuilder  input_path;
-MainGuiWindow* c3p_root_window   = nullptr;
 bool           continue_running  = true;
 
-// The pointer to the blob we are studying.
-uint8_t bin_field[128] = {0, };  // TODO: Should be uint8_t*, and allocatable.
+// Create the conf object. Load it later.
+ConfRecordValidation<StudyConfKey> main_conf(0, &CONF_LIST);
+
+StringBuilder  bin_field;
 
 // TODO: Might be dropped or auto-generated from the executable's hash.
 // NOTE: This program does no comm work, and so never really needs to report
@@ -51,6 +53,7 @@ IdentityUUID ident_uuid("BIN_ID", (char*) "73a6a69d-f6f7-4547-88ad-ab9eb0290974"
 //   expected that output here will be ignored unless diagnosing problems.
 // LinuxStdIO makes no distinction between STDOUT and STDERR. All output will be
 //   via STDOUT.
+// Input from STDIN will be read and dropped if it is not being observed.
 LinuxStdIO console_adapter;
 
 
@@ -112,28 +115,28 @@ int main(int argc, const char *argv[]) {
   }
 
   // Instance an X11 window.
-  c3p_root_window = new MainGuiWindow(0, 0, 1024, 768, argv[0]);
-  if (c3p_root_window) {
-    if (0 == c3p_root_window->createWindow()) {
+  // NOTE: The window destructor will block until the GUI thread is shut down.
+  //   So for the sake of enforcing thread termination order, we empty-scope the
+  //   existance of the window such that the process will naturally wait for all
+  //   the complicated cleanup to happen before it flushes its output buffer,
+  //   and slams the door on the process.
+  {
+    MainGuiWindow c3p_root_window(0, 0, 1024, 768, argv[0]);
+    if (0 == c3p_root_window.createWindow()) {
       // The window thread is running.
       StringBuilder output(PROGRAM_NAME);
       output.concatf(" v%s initialized\n\n", PROGRAM_VERSION);
       c3p_log(LOG_LEV_INFO, __PRETTY_FUNCTION__, &output);
       do {
-        console_adapter.poll();       // The main loop. Run until told to stop.
-      } while (continue_running);     // GUI thread handles the heavy-lifting.
+        console_adapter.poll();     // The main loop. Run until told to stop.
+      } while (continue_running);   // GUI thread handles the heavy-lifting.
     }
     else {
-      c3p_log(LOG_LEV_ERROR, __PRETTY_FUNCTION__, "Failed to instance the root GUI window (not great, not terrible).");
+      c3p_log(LOG_LEV_ERROR, __PRETTY_FUNCTION__, "Failed to create the root GUI window (not great, not terrible).");
     }
-  }
-  else {
-    c3p_log(LOG_LEV_ERROR, __PRETTY_FUNCTION__, "Failed to instance the root GUI window (the core is burning).");
   }
 
   console_adapter.poll();
-
-  delete c3p_root_window;         // Will block until the GUI thread is shut down.
   platform.firmware_shutdown(0);  // Clean up the platform.
   exit(0);
 }
