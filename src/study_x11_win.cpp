@@ -82,7 +82,7 @@ GfxUIStyle base_style;
 // C3PValue base style
 GfxUIStyle c3pvalue_style(
   0,          // bg
-  0xA0A0A0,   // border
+  0x202020,   // border
   0xFFFFFF,   // header
   0xC0C0C0,   // active
   0xA0A0A0,   // inactive
@@ -126,11 +126,11 @@ GfxUIC3PValue _value_render_bin(
   &_c3p_value_bin,
   GfxUILayout(
     10, 30,
-    800, 600,
+    700, 640,
     ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
-    0, 0, 0, 0   // Border_px(t, b, l, r)
+    1, 1, 1, 1   // Border_px(t, b, l, r)
   ), c3pvalue_style,
-  (GFXUI_C3PVAL_FLAG_SHOW_TYPE_INFO)
+  (0)
 );
 
 
@@ -158,7 +158,7 @@ GfxUITextButton button_paste_from_clpbrd(
   GfxUILayout(
     button_paste_from_selbuf.elementPosX(), (button_paste_from_selbuf.elementPosY() + button_paste_from_selbuf.elementHeight() + 1),
     button_paste_from_selbuf.elementWidth(), button_paste_from_selbuf.elementHeight(),
-    0, ELEMENT_MARGIN, 0, ELEMENT_MARGIN,
+    ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
     0, 0, 0, 0
   ),
   GfxUIStyle(0, // bg
@@ -172,6 +172,68 @@ GfxUITextButton button_paste_from_clpbrd(
   ),
   "Clipboard",
   (GFXUI_BUTTON_FLAG_MOMENTARY)
+);
+
+
+GfxUITextButton button_paste_from_file(
+  GfxUILayout(
+    button_paste_from_clpbrd.elementPosX(), (button_paste_from_clpbrd.elementPosY() + button_paste_from_clpbrd.elementHeight() + 1),
+    button_paste_from_clpbrd.elementWidth(), button_paste_from_clpbrd.elementHeight(),
+    ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
+    0, 0, 0, 0
+  ),
+  GfxUIStyle(0, // bg
+    0xFFFFFF,   // border
+    0xFFFFFF,   // header
+    0x10FF10,   // active
+    0xA0A0A0,   // inactive
+    0xFFFFFF,   // selected
+    0x202020,   // unselected
+    1           // t_size
+  ),
+  "From File",
+  (GFXUI_BUTTON_FLAG_MOMENTARY)
+);
+
+
+GfxUITextButton button_paste_from_testfield(
+  GfxUILayout(
+    button_paste_from_file.elementPosX(), (button_paste_from_file.elementPosY() + button_paste_from_file.elementHeight() + 1),
+    button_paste_from_file.elementWidth(), button_paste_from_file.elementHeight(),
+    ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
+    0, 0, 0, 0
+  ),
+  GfxUIStyle(0, // bg
+    0xFFFFFF,   // border
+    0xFFFFFF,   // header
+    0x10FF10,   // active
+    0xA0A0A0,   // inactive
+    0xFFFFFF,   // selected
+    0x202020,   // unselected
+    1           // t_size
+  ),
+  "Test Field",
+  (GFXUI_BUTTON_FLAG_MOMENTARY)
+);
+
+GfxUITextButton button_use_hilbert(
+  GfxUILayout(
+    button_paste_from_testfield.elementPosX(), (button_paste_from_testfield.elementPosY() + button_paste_from_testfield.elementHeight() + 1),
+    button_paste_from_testfield.elementWidth(), button_paste_from_testfield.elementHeight(),
+    ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
+    0, 0, 0, 0
+  ),
+  GfxUIStyle(0, // bg
+    0xFFFFFF,   // border
+    0xFFFFFF,   // header
+    0x10FF10,   // active
+    0xA0A0A0,   // inactive
+    0xFFFFFF,   // selected
+    0x202020,   // unselected
+    1           // t_size
+  ),
+  "Hilbert Curve",
+  (0)
 );
 
 
@@ -400,7 +462,6 @@ GfxUIKeyValuePair _kvp_render_main_conf(
 );
 
 
-
 /*******************************************************************************
 * Callbacks and other non-class functions
 *******************************************************************************/
@@ -429,6 +490,24 @@ void ui_value_change_callback(GfxUIElement* element) {
       todo_shim->request_selection_buffer();
     }
   }
+  else if (element == ((GfxUIElement*) &button_paste_from_file)) {
+    if (button_paste_from_file.pressed()) {
+      // Byte test field.
+      uint8_t test_field[512];
+      for (int i = 0; i < sizeof(test_field); i++) { test_field[i] = (uint8_t) i;  }
+      bin_field.clear();
+      bin_field.concat(test_field, sizeof(test_field));
+    }
+  }
+  else if (element == ((GfxUIElement*) &button_paste_from_testfield)) {
+    if (button_paste_from_testfield.pressed()) {
+      // Byte test field.
+      uint8_t test_field[1024];
+      for (int i = 0; i < sizeof(test_field); i++) { test_field[i] = (uint8_t) i;  }
+      bin_field.clear();
+      bin_field.concat(test_field, sizeof(test_field));
+    }
+  }
 
   else {
     c3p_log(LOG_LEV_INFO, __PRETTY_FUNCTION__, "VALUE_CHANGE %p", element);
@@ -451,6 +530,9 @@ int8_t MainGuiWindow::createWindow() {
     main_nav_overview.add_child(&_value_render_bin);
     main_nav_overview.add_child(&button_paste_from_clpbrd);
     main_nav_overview.add_child(&button_paste_from_selbuf);
+    main_nav_overview.add_child(&button_paste_from_testfield);
+    main_nav_overview.add_child(&button_paste_from_file);
+    main_nav_overview.add_child(&button_use_hilbert);
 
     // Assemble the contexts pane...
     //main_nav_contexts.add_child(&_txt_area_0);
