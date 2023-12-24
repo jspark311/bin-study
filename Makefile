@@ -12,6 +12,7 @@ CXX_STANDARD       = gnu++17
 OPTIMIZATION       = -O2
 
 CONFIG_C3P_CRYPTO = mbedtls
+C3P_CONF  = -DCONFIG_C3P_STORAGE
 C3P_CONF  = -DCONFIG_C3P_CBOR
 C3P_CONF += -DCONFIG_C3P_IMG_SUPPORT
 
@@ -49,7 +50,7 @@ CXX_SRCS += lib/CppPotpourri/src/Image/ImageUtils/*.cpp
 CXX_SRCS += lib/Platform/src/GUI/X11/*.cpp
 CXX_SRCS += lib/Platform/src/Linux.cpp
 CXX_SRCS += lib/Platform/src/LinuxStdIO.cpp
-#CXX_SRCS += lib/ManuvrPlatforms/src/LinuxStorage.cpp
+CXX_SRCS += lib/Platform/src/C3PLinuxFile.cpp
 
 # Libraries to link against.
 LIBS	= -L$(OUTPUT_PATH) -lstdc++ -lm -lpthread -lX11

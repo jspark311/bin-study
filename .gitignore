@@ -1,0 +1,18 @@
+.directory
+*.gch
+*.o
+*.a
+*.d
+*.map
+
+# Example binaries
+blob-study
+build/
+
+# cmake artifacts
+CMakeCache.txt
+CMakeFiles/
+
+# Library softlinks
+lib/CppPotpourri
+lib/Platform

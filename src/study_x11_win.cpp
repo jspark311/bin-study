@@ -21,8 +21,11 @@ extern bool continue_running;       // TODO: (rolled up newspaper) Bad...
 * Definitions and mappings
 *******************************************************************************/
 /* Flags used by the top-level window */
-#define STUDY_GUI_MOD_CTRL_HELD            0x00000001  // Modifier key state.
-#define STUDY_GUI_MOD_ALT_HELD             0x00000002  // Modifier key state.
+#define STUDY_GUI_MOD_CTRL_HELD       0x00000001  // Modifier key state.
+#define STUDY_GUI_MOD_ALT_HELD        0x00000002  // Modifier key state.
+#define STUDY_GUI_SEL_BUF_HAS_PATH    0x00000004  // Inbound selection buffer will be holding a path.
+
+
 
 /* Define the mouse buttons we observe and map them to the GUI layer in C3P. */
 MouseButtonDef mouse_buttons[] = {
@@ -120,24 +123,76 @@ GfxUITabbedContentPane _main_nav(
 *******************************************************************************/
 GfxUIGroup main_nav_overview(0, 0, 0, 0);
 
-C3PValue _c3p_value_bin(nullptr, 0);
-
-GfxUIC3PValue _value_render_bin(
-  &_c3p_value_bin,
+C3PValue c3p_value_input_path("");
+GfxUIC3PValue input_path_render(
+  &c3p_value_input_path,
   GfxUILayout(
-    10, 30,
-    700, 640,
+    10, 20,
+    750, 24,
     ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
-    1, 1, 1, 1   // Border_px(t, b, l, r)
-  ), c3pvalue_style,
+    0, 0, 0, 0   // Border_px(t, b, l, r)
+  ),
+  GfxUIStyle(0, // bg
+    0xc0c0c0,   // border
+    0xFFFFFF,   // header
+    0xc0c0c0,   // active
+    0xA0A0A0,   // inactive
+    0xFFFFFF,   // selected
+    0x202020,   // unselected
+    2           // t_size
+  ),
   (0)
 );
 
 
-GfxUITextButton button_paste_from_selbuf(
+
+C3PValue _c3p_value_bin(nullptr, 0);
+GfxUIC3PValue _value_render_bin(
+  &_c3p_value_bin,
   GfxUILayout(
-    (_value_render_bin.elementPosX() + _value_render_bin.elementWidth() + 20), _value_render_bin.elementPosY(),
-    120, 25,
+    input_path_render.elementPosX(), (input_path_render.elementPosY() + input_path_render.elementHeight() + 1),
+    800, 640,
+    ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
+    1, 1, 1, 1   // Border_px(t, b, l, r)
+  ),
+  GfxUIStyle(0, // bg
+    0xc0c0c0,   // border
+    0xFFFFFF,   // header
+    0xc0c0c0,   // active
+    0xA0A0A0,   // inactive
+    0xFFFFFF,   // selected
+    0x202020,   // unselected
+    1           // t_size
+  ),
+  (0)
+);
+
+
+GfxUITextButton button_unload_file(
+  GfxUILayout(
+    (input_path_render.elementPosX() + input_path_render.elementWidth() + 20), input_path_render.elementPosY(),
+    90, input_path_render.elementHeight(),
+    ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
+    0, 0, 0, 0
+  ),
+  GfxUIStyle(0, // bg
+    0xFFFFFF,   // border
+    0xFFFFFF,   // header
+    0xFF1010,   // active
+    0xA0A0A0,   // inactive
+    0xFFFFFF,   // selected
+    0x202020,   // unselected
+    1           // t_size
+  ),
+  "Unload File",
+  (GFXUI_BUTTON_FLAG_MOMENTARY)
+);
+
+
+GfxUITextButton button_paste_from_file(
+  GfxUILayout(
+    (button_unload_file.elementPosX() + button_unload_file.elementWidth() + 20), button_unload_file.elementPosY(),
+    90, button_unload_file.elementHeight(),
     ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
     0, 0, 0, 0
   ),
@@ -145,6 +200,28 @@ GfxUITextButton button_paste_from_selbuf(
     0xFFFFFF,   // border
     0xFFFFFF,   // header
     0x10FF10,   // active
+    0xA0A0A0,   // inactive
+    0xFFFFFF,   // selected
+    0x202020,   // unselected
+    1           // t_size
+  ),
+  "Paste Path",
+  (GFXUI_BUTTON_FLAG_MOMENTARY)
+);
+
+
+
+GfxUITextButton button_paste_from_selbuf(
+  GfxUILayout(
+    (_value_render_bin.elementPosX() + _value_render_bin.elementWidth() + 20), _value_render_bin.elementPosY(),
+    120, 26,
+    ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
+    0, 0, 0, 0
+  ),
+  GfxUIStyle(0, // bg
+    0xFFFFFF,   // border
+    0xFFFFFF,   // header
+    0x10bbcc,   // active
     0xA0A0A0,   // inactive
     0xFFFFFF,   // selected
     0x202020,   // unselected
@@ -164,7 +241,7 @@ GfxUITextButton button_paste_from_clpbrd(
   GfxUIStyle(0, // bg
     0xFFFFFF,   // border
     0xFFFFFF,   // header
-    0x10FF10,   // active
+    0x10bbcc,   // active
     0xA0A0A0,   // inactive
     0xFFFFFF,   // selected
     0x202020,   // unselected
@@ -175,7 +252,7 @@ GfxUITextButton button_paste_from_clpbrd(
 );
 
 
-GfxUITextButton button_paste_from_file(
+GfxUITextButton button_paste_from_testfield(
   GfxUILayout(
     button_paste_from_clpbrd.elementPosX(), (button_paste_from_clpbrd.elementPosY() + button_paste_from_clpbrd.elementHeight() + 1),
     button_paste_from_clpbrd.elementWidth(), button_paste_from_clpbrd.elementHeight(),
@@ -185,28 +262,7 @@ GfxUITextButton button_paste_from_file(
   GfxUIStyle(0, // bg
     0xFFFFFF,   // border
     0xFFFFFF,   // header
-    0x10FF10,   // active
-    0xA0A0A0,   // inactive
-    0xFFFFFF,   // selected
-    0x202020,   // unselected
-    1           // t_size
-  ),
-  "From File",
-  (GFXUI_BUTTON_FLAG_MOMENTARY)
-);
-
-
-GfxUITextButton button_paste_from_testfield(
-  GfxUILayout(
-    button_paste_from_file.elementPosX(), (button_paste_from_file.elementPosY() + button_paste_from_file.elementHeight() + 1),
-    button_paste_from_file.elementWidth(), button_paste_from_file.elementHeight(),
-    ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
-    0, 0, 0, 0
-  ),
-  GfxUIStyle(0, // bg
-    0xFFFFFF,   // border
-    0xFFFFFF,   // header
-    0x10FF10,   // active
+    0x10bbcc,   // active
     0xA0A0A0,   // inactive
     0xFFFFFF,   // selected
     0x202020,   // unselected
@@ -226,7 +282,7 @@ GfxUITextButton button_use_hilbert(
   GfxUIStyle(0, // bg
     0xFFFFFF,   // border
     0xFFFFFF,   // header
-    0x10FF10,   // active
+    0xbb10cc,   // active
     0xA0A0A0,   // inactive
     0xFFFFFF,   // selected
     0x202020,   // unselected
@@ -492,18 +548,29 @@ void ui_value_change_callback(GfxUIElement* element) {
   }
   else if (element == ((GfxUIElement*) &button_paste_from_file)) {
     if (button_paste_from_file.pressed()) {
-      // Byte test field.
-      uint8_t test_field[512];
-      for (int i = 0; i < sizeof(test_field); i++) { test_field[i] = (uint8_t) i;  }
-      bin_field.clear();
-      bin_field.concat(test_field, sizeof(test_field));
+      todo_shim->loadPathInSelection();
     }
   }
+  else if (element == ((GfxUIElement*) &button_unload_file)) {
+    if (button_unload_file.pressed()) {
+      c3p_value_input_path.set("");
+      todo_shim->unloadInputFile();
+    }
+  }
+
   else if (element == ((GfxUIElement*) &button_paste_from_testfield)) {
     if (button_paste_from_testfield.pressed()) {
       // Byte test field.
-      uint8_t test_field[1024];
-      for (int i = 0; i < sizeof(test_field); i++) { test_field[i] = (uint8_t) i;  }
+      uint8_t test_field[16384];
+      for (uint32_t i = 0; i < sizeof(test_field); i++) {
+        if (0x00000100 & i) {
+          test_field[i] = (255 - (uint8_t) i);
+        }
+        else {
+          test_field[i] = (uint8_t) i;
+        }
+      }
+      c3p_value_input_path.set("Test field");
       bin_field.clear();
       bin_field.concat(test_field, sizeof(test_field));
     }
@@ -513,6 +580,21 @@ void ui_value_change_callback(GfxUIElement* element) {
     c3p_log(LOG_LEV_INFO, __PRETTY_FUNCTION__, "VALUE_CHANGE %p", element);
   }
 }
+
+
+void MainGuiWindow::loadPathInSelection() {
+  _modifiers.set(STUDY_GUI_SEL_BUF_HAS_PATH);
+  request_selection_buffer();
+}
+
+void MainGuiWindow::unloadInputFile() {
+  if (nullptr != file_in_ptr) {
+    delete file_in_ptr;
+    file_in_ptr = nullptr;
+    bin_field.clear();
+  }
+}
+
 
 
 /*******************************************************************************
@@ -527,11 +609,13 @@ int8_t MainGuiWindow::createWindow() {
     _overlay.reallocate();
 
     // Assemble the overview pane...
+    main_nav_overview.add_child(&input_path_render);
+    main_nav_overview.add_child(&button_paste_from_file);
+    main_nav_overview.add_child(&button_unload_file);
     main_nav_overview.add_child(&_value_render_bin);
     main_nav_overview.add_child(&button_paste_from_clpbrd);
     main_nav_overview.add_child(&button_paste_from_selbuf);
     main_nav_overview.add_child(&button_paste_from_testfield);
-    main_nav_overview.add_child(&button_paste_from_file);
     main_nav_overview.add_child(&button_use_hilbert);
 
     // Assemble the contexts pane...
@@ -598,12 +682,14 @@ int8_t MainGuiWindow::render(bool force) {
   uint8_t* render_ptr = nullptr;
   uint32_t render_len = 0;
   if (0 != _c3p_value_bin.get_as(&render_ptr, &render_len)) {
-    // TODO: Maybe log or set some special state?
+    c3p_log(LOG_LEV_DEBUG, __PRETTY_FUNCTION__, "Failed to get BLOB from _c3p_value_bin.");
   }
   const bool BLOB_CHANGED = (bin_field.string() != render_ptr);
   if (BLOB_CHANGED) {
     c3p_log(LOG_LEV_DEBUG, __PRETTY_FUNCTION__, "BLOB_CHANGED");
     _c3p_value_bin.set(bin_field.string(), bin_field.length(), TCode::BINARY);
+  }
+  else if (force) {
   }
 
   if (force | BLOB_CHANGED) {
@@ -660,15 +746,46 @@ int8_t MainGuiWindow::poll() {
             unsigned long size;
             XGetWindowProperty(e.xselection.display, e.xselection.requestor, e.xselection.property, 0L,(~0L), 0, AnyPropertyType, &target, &format, &size, &ele_count, &data);
             if ((target == UTF8) || (target == XA_STRING)) {
-              // Deep-copy the clipboard data into the blob buffer.
-              bin_field.clear();
-              bin_field.concat(data, size);
-              c3p_log(LOG_LEV_INFO, __PRETTY_FUNCTION__, "Set blob from clipboard (%d bytes).", size);
+              if (_modifiers.value(STUDY_GUI_SEL_BUF_HAS_PATH)) {
+                _modifiers.clear(STUDY_GUI_SEL_BUF_HAS_PATH);
+                // If it hasn't been done already, create a working C3PFile with
+                //   the given path name.
+                if (nullptr == file_in_ptr) {
+                  file_in_ptr = new C3PFile((char*) data);
+                  if (nullptr != file_in_ptr) {
+                    bool should_free_file = true;
+                    if (file_in_ptr->isFile() & file_in_ptr->exists()) {
+                      StringBuilder file_data;
+                      int32_t file_read_ret = file_in_ptr->read(&file_data);
+                      if (0 < file_read_ret) {
+                        should_free_file = false;
+                        c3p_value_input_path.set(file_in_ptr->path());
+                        bin_field.clear();
+                        bin_field.concatHandoff(&file_data);
+                      }
+                      else c3p_log(LOG_LEV_ERROR, __PRETTY_FUNCTION__, "Path %s appears to be an empty file.", (char*) data);
+                    }
+                    else c3p_log(LOG_LEV_ERROR, __PRETTY_FUNCTION__, "Path %s doesn't exist or isn't a file.", (char*) data);
+
+                    if (should_free_file) {
+                      delete file_in_ptr;
+                      file_in_ptr = nullptr;
+                    }
+                  }
+                  else c3p_log(LOG_LEV_ALERT, __PRETTY_FUNCTION__, "Failed to instance a C3PFile.");
+                }
+                else c3p_log(LOG_LEV_WARN, __PRETTY_FUNCTION__, "Can't set a new file until the one already open has been closed.");
+              }
+              else {
+                // Deep-copy the clipboard data into the blob buffer.
+                bin_field.clear();
+                bin_field.concat(data, size);
+                c3p_log(LOG_LEV_INFO, __PRETTY_FUNCTION__, "Set blob from clipboard (%d bytes).", size);
+              }
               XFree(data);
             }
-            else {
-              c3p_log(LOG_LEV_NOTICE, __PRETTY_FUNCTION__, "target: %d", (int) target);
-            }
+            else c3p_log(LOG_LEV_NOTICE, __PRETTY_FUNCTION__, "target: %d", (int) target);
+
             XDeleteProperty(e.xselection.display, e.xselection.requestor, e.xselection.property);
           }
         }
@@ -689,7 +806,9 @@ int8_t MainGuiWindow::poll() {
           // Try to resize the window. If it isn't required, _refit_window()
           //   will return zero.
           int8_t local_ret = _refit_window();
-          if (0 != local_ret) {
+          if (0 == local_ret) {
+          }
+          else {
             c3p_log(LOG_LEV_ERROR, __PRETTY_FUNCTION__, "Window resize failed (%d).", local_ret);
           }
         }

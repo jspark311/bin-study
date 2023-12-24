@@ -34,6 +34,7 @@
 #include "CppPotpourri/src/Image/GfxUI.h"
 #include "Platform/C3POnX11.h"
 #include "Platform/Linux.h"
+#include "Platform/LinuxStorage.h"
 
 
 #define PROGRAM_NAME     "BlobStudy"                   // Program proper name.
@@ -99,12 +100,15 @@ class MainGuiWindow : public C3Px11Window {
     int8_t closeWindow();
     int8_t render(bool force);
     int8_t render_overlay();
+    void loadPathInSelection();
+    void unloadInputFile();
 
 
   private:
     FlagContainer32 _modifiers;
     GfxUIElement*   _key_target;
     GfxUIElement*   _paste_target;
+    C3PFile*        file_in_ptr = nullptr;
 };
 
 
