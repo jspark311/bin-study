@@ -101,7 +101,7 @@ GfxUIStyle c3pvalue_style(
 GfxUITabbedContentPane _main_nav(
   GfxUILayout(
     0, 0,
-    1024, 768,
+    1280, 1024,
     ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
     0, 0, 0, 0               // Border_px(t, b, l, r)
   ),
@@ -123,11 +123,72 @@ GfxUITabbedContentPane _main_nav(
 *******************************************************************************/
 GfxUIGroup main_nav_overview(0, 0, 0, 0);
 
-C3PValue c3p_value_input_path("");
+GfxUITextButton button_paste_from_selbuf(
+  GfxUILayout(
+    0, 20,
+    120, 26,
+    ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
+    0, 0, 0, 0
+  ),
+  GfxUIStyle(0, // bg
+    0xFFFFFF,   // border
+    0xFFFFFF,   // header
+    0x10bbcc,   // active
+    0xA0A0A0,   // inactive
+    0xFFFFFF,   // selected
+    0x202020,   // unselected
+    1           // t_size
+  ),
+  "Selection Buf",
+  (GFXUI_BUTTON_FLAG_MOMENTARY)
+);
+
+GfxUITextButton button_paste_from_clpbrd(
+  GfxUILayout(
+    (button_paste_from_selbuf.elementPosX() + button_paste_from_selbuf.elementWidth()), button_paste_from_selbuf.elementPosY(),
+    button_paste_from_selbuf.elementWidth(), button_paste_from_selbuf.elementHeight(),
+    ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
+    0, 0, 0, 0
+  ),
+  GfxUIStyle(0, // bg
+    0xFFFFFF,   // border
+    0xFFFFFF,   // header
+    0x10bbcc,   // active
+    0xA0A0A0,   // inactive
+    0xFFFFFF,   // selected
+    0x202020,   // unselected
+    1           // t_size
+  ),
+  "Clipboard",
+  (GFXUI_BUTTON_FLAG_MOMENTARY)
+);
+
+
+GfxUITextButton button_paste_from_testfield(
+  GfxUILayout(
+    (button_paste_from_clpbrd.elementPosX() + button_paste_from_clpbrd.elementWidth()), button_paste_from_clpbrd.elementPosY(),
+    button_paste_from_clpbrd.elementWidth(), button_paste_from_clpbrd.elementHeight(),
+    ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
+    0, 0, 0, 0
+  ),
+  GfxUIStyle(0, // bg
+    0xFFFFFF,   // border
+    0xFFFFFF,   // header
+    0x10bbcc,   // active
+    0xA0A0A0,   // inactive
+    0xFFFFFF,   // selected
+    0x202020,   // unselected
+    1           // t_size
+  ),
+  "Test Field",
+  (GFXUI_BUTTON_FLAG_MOMENTARY)
+);
+
+C3PValue c3p_value_input_path(TCode::STR);
 GfxUIC3PValue input_path_render(
   &c3p_value_input_path,
   GfxUILayout(
-    10, 20,
+    button_paste_from_selbuf.elementPosX(), (button_paste_from_selbuf.elementPosY() + button_paste_from_selbuf.elementHeight()),
     750, 24,
     ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
     0, 0, 0, 0   // Border_px(t, b, l, r)
@@ -147,11 +208,11 @@ GfxUIC3PValue input_path_render(
 
 
 C3PValue _c3p_value_bin(nullptr, 0);
-GfxUIC3PValue _value_render_bin(
+GfxUIBlobRender value_render_bin(
   &_c3p_value_bin,
   GfxUILayout(
     input_path_render.elementPosX(), (input_path_render.elementPosY() + input_path_render.elementHeight() + 1),
-    800, 640,
+    1024, 800,
     ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
     1, 1, 1, 1   // Border_px(t, b, l, r)
   ),
@@ -208,90 +269,6 @@ GfxUITextButton button_paste_from_file(
   "Paste Path",
   (GFXUI_BUTTON_FLAG_MOMENTARY)
 );
-
-
-
-GfxUITextButton button_paste_from_selbuf(
-  GfxUILayout(
-    (_value_render_bin.elementPosX() + _value_render_bin.elementWidth() + 20), _value_render_bin.elementPosY(),
-    120, 26,
-    ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
-    0, 0, 0, 0
-  ),
-  GfxUIStyle(0, // bg
-    0xFFFFFF,   // border
-    0xFFFFFF,   // header
-    0x10bbcc,   // active
-    0xA0A0A0,   // inactive
-    0xFFFFFF,   // selected
-    0x202020,   // unselected
-    1           // t_size
-  ),
-  "Selection Buf",
-  (GFXUI_BUTTON_FLAG_MOMENTARY)
-);
-
-GfxUITextButton button_paste_from_clpbrd(
-  GfxUILayout(
-    button_paste_from_selbuf.elementPosX(), (button_paste_from_selbuf.elementPosY() + button_paste_from_selbuf.elementHeight() + 1),
-    button_paste_from_selbuf.elementWidth(), button_paste_from_selbuf.elementHeight(),
-    ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
-    0, 0, 0, 0
-  ),
-  GfxUIStyle(0, // bg
-    0xFFFFFF,   // border
-    0xFFFFFF,   // header
-    0x10bbcc,   // active
-    0xA0A0A0,   // inactive
-    0xFFFFFF,   // selected
-    0x202020,   // unselected
-    1           // t_size
-  ),
-  "Clipboard",
-  (GFXUI_BUTTON_FLAG_MOMENTARY)
-);
-
-
-GfxUITextButton button_paste_from_testfield(
-  GfxUILayout(
-    button_paste_from_clpbrd.elementPosX(), (button_paste_from_clpbrd.elementPosY() + button_paste_from_clpbrd.elementHeight() + 1),
-    button_paste_from_clpbrd.elementWidth(), button_paste_from_clpbrd.elementHeight(),
-    ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
-    0, 0, 0, 0
-  ),
-  GfxUIStyle(0, // bg
-    0xFFFFFF,   // border
-    0xFFFFFF,   // header
-    0x10bbcc,   // active
-    0xA0A0A0,   // inactive
-    0xFFFFFF,   // selected
-    0x202020,   // unselected
-    1           // t_size
-  ),
-  "Test Field",
-  (GFXUI_BUTTON_FLAG_MOMENTARY)
-);
-
-GfxUITextButton button_use_hilbert(
-  GfxUILayout(
-    button_paste_from_testfield.elementPosX(), (button_paste_from_testfield.elementPosY() + button_paste_from_testfield.elementHeight() + 1),
-    button_paste_from_testfield.elementWidth(), button_paste_from_testfield.elementHeight(),
-    ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
-    0, 0, 0, 0
-  ),
-  GfxUIStyle(0, // bg
-    0xFFFFFF,   // border
-    0xFFFFFF,   // header
-    0xbb10cc,   // active
-    0xA0A0A0,   // inactive
-    0xFFFFFF,   // selected
-    0x202020,   // unselected
-    1           // t_size
-  ),
-  "Hilbert Curve",
-  (0)
-);
-
 
 
 /*******************************************************************************
@@ -553,7 +530,7 @@ void ui_value_change_callback(GfxUIElement* element) {
   }
   else if (element == ((GfxUIElement*) &button_unload_file)) {
     if (button_unload_file.pressed()) {
-      c3p_value_input_path.set("");
+      c3p_value_input_path.set((char*) "");
       todo_shim->unloadInputFile();
     }
   }
@@ -570,7 +547,7 @@ void ui_value_change_callback(GfxUIElement* element) {
           test_field[i] = (uint8_t) i;
         }
       }
-      c3p_value_input_path.set("Test field");
+      c3p_value_input_path.set((char*) "Test field");
       bin_field.clear();
       bin_field.concat(test_field, sizeof(test_field));
     }
@@ -592,6 +569,15 @@ void MainGuiWindow::unloadInputFile() {
     delete file_in_ptr;
     file_in_ptr = nullptr;
     bin_field.clear();
+    unloadMapFile();
+  }
+}
+
+
+void MainGuiWindow::unloadMapFile() {
+  if (nullptr != file_map_ptr) {
+    delete file_map_ptr;
+    file_map_ptr = nullptr;
   }
 }
 
@@ -612,11 +598,10 @@ int8_t MainGuiWindow::createWindow() {
     main_nav_overview.add_child(&input_path_render);
     main_nav_overview.add_child(&button_paste_from_file);
     main_nav_overview.add_child(&button_unload_file);
-    main_nav_overview.add_child(&_value_render_bin);
+    main_nav_overview.add_child(&value_render_bin);
     main_nav_overview.add_child(&button_paste_from_clpbrd);
     main_nav_overview.add_child(&button_paste_from_selbuf);
     main_nav_overview.add_child(&button_paste_from_testfield);
-    main_nav_overview.add_child(&button_use_hilbert);
 
     // Assemble the contexts pane...
     //main_nav_contexts.add_child(&_txt_area_0);

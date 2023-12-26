@@ -37,6 +37,7 @@
 #include "Platform/LinuxStorage.h"
 
 
+
 #define PROGRAM_NAME     "BlobStudy"                   // Program proper name.
 #define PROGRAM_VERSION  "(stop pretending you care)"  // Program version.
 
@@ -54,12 +55,10 @@ typedef uint32_t PixelInt;
 /* GUI parameters */
 #define ELEMENT_MARGIN          3
 
-
-
 /*******************************************************************************
 * Configuration keys
 *******************************************************************************/
-enum class StudyConfKey : uint16_t {
+enum class StudyConfKey : uint8_t {
   SHOW_PANE_INTERNALS,
   INVALID
 };
@@ -102,13 +101,15 @@ class MainGuiWindow : public C3Px11Window {
     int8_t render_overlay();
     void loadPathInSelection();
     void unloadInputFile();
+    void unloadMapFile();
 
 
   private:
     FlagContainer32 _modifiers;
     GfxUIElement*   _key_target;
     GfxUIElement*   _paste_target;
-    C3PFile*        file_in_ptr = nullptr;
+    C3PFile*        file_in_ptr  = nullptr;
+    C3PFile*        file_map_ptr = nullptr;
 };
 
 

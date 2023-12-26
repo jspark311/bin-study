@@ -121,7 +121,7 @@ int main(int argc, const char *argv[]) {
   //   the complicated cleanup to happen before it flushes its output buffer,
   //   and slams the door on the process.
   {
-    MainGuiWindow c3p_root_window(0, 0, 1024, 768, argv[0]);
+    MainGuiWindow c3p_root_window(0, 0, 1280, 1024, argv[0]);
     if (0 == c3p_root_window.createWindow()) {
       // The window thread is running.
       StringBuilder output(PROGRAM_NAME);
