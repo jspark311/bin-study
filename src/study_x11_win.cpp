@@ -184,12 +184,12 @@ GfxUITextButton button_paste_from_testfield(
   (GFXUI_BUTTON_FLAG_MOMENTARY)
 );
 
-C3PValue c3p_value_input_path(TCode::STR);
+C3PValue c3p_value_input_path("Nothing loaded");
 GfxUIC3PValue input_path_render(
   &c3p_value_input_path,
   GfxUILayout(
     button_paste_from_selbuf.elementPosX(), (button_paste_from_selbuf.elementPosY() + button_paste_from_selbuf.elementHeight()),
-    750, 24,
+    750, 28,
     ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
     0, 0, 0, 0   // Border_px(t, b, l, r)
   ),
@@ -202,7 +202,7 @@ GfxUIC3PValue input_path_render(
     0x202020,   // unselected
     2           // t_size
   ),
-  (0)
+  (GFXUI_FLAG_ALWAYS_REDRAW)
 );
 
 
@@ -212,7 +212,7 @@ GfxUIBlobRender value_render_bin(
   &_c3p_value_bin,
   GfxUILayout(
     input_path_render.elementPosX(), (input_path_render.elementPosY() + input_path_render.elementHeight() + 1),
-    1024, 800,
+    1080, 900,
     ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN, ELEMENT_MARGIN,
     1, 1, 1, 1   // Border_px(t, b, l, r)
   ),
@@ -225,7 +225,7 @@ GfxUIBlobRender value_render_bin(
     0x202020,   // unselected
     1           // t_size
   ),
-  (0)
+  (GFXUI_FLAG_ALWAYS_REDRAW)
 );
 
 
@@ -530,7 +530,7 @@ void ui_value_change_callback(GfxUIElement* element) {
   }
   else if (element == ((GfxUIElement*) &button_unload_file)) {
     if (button_unload_file.pressed()) {
-      c3p_value_input_path.set((char*) "");
+      c3p_value_input_path.set("Nothing loaded");
       todo_shim->unloadInputFile();
     }
   }
@@ -547,7 +547,7 @@ void ui_value_change_callback(GfxUIElement* element) {
           test_field[i] = (uint8_t) i;
         }
       }
-      c3p_value_input_path.set((char*) "Test field");
+      c3p_value_input_path.set("Test field");
       bin_field.clear();
       bin_field.concat(test_field, sizeof(test_field));
     }
@@ -654,7 +654,9 @@ int8_t MainGuiWindow::render_overlay() {
   // If the pointer is within the window, we note its location and
   //   annotate the overlay.
   ui_magnifier.pointerLocation(_pointer_x, _pointer_y);
-  ui_magnifier.render(&gfx_overlay);
+  if (_modifiers.value(STUDY_GUI_MOD_CTRL_HELD)) {
+    ui_magnifier.render(&gfx_overlay);
+  }
   return 0;
 }
 
@@ -803,20 +805,24 @@ int8_t MainGuiWindow::poll() {
       case ButtonRelease:
         {
           uint16_t btn_id = e.xbutton.button;
-          int8_t ret = _proc_mouse_button(btn_id, e.xbutton.x, e.xbutton.y, (e.type == ButtonPress));
-          if (0 == ret) {
-            // Any unclaimed input can be handled in this block.
+          if (_modifiers.value(STUDY_GUI_MOD_CTRL_HELD)) {
             const GfxUIEvent event = (btn_id == 5) ? GfxUIEvent::MOVE_DOWN : GfxUIEvent::MOVE_UP;
             switch (btn_id) {
               case 4:
               case 5:
-                // Unhandled scroll events adjust the magnifier scale.
-                //ui_magnifier.notify(
-                //  ((btn_id == 5) ? GfxUIEvent::MOVE_DOWN : GfxUIEvent::MOVE_UP),
-                //  ui_magnifier.elementPosX(), ui_magnifier.elementPosY()
-                //);
+                // Scroll events adjust the magnifier scale if CTRL is held.
+                ui_magnifier.notify(
+                  ((btn_id == 5) ? GfxUIEvent::MOVE_DOWN : GfxUIEvent::MOVE_UP),
+                  ui_magnifier.elementPosX(), ui_magnifier.elementPosY(), nullptr
+                );
               default:
                 break;
+            }
+          }
+          else {
+            int8_t ret = _proc_mouse_button(btn_id, e.xbutton.x, e.xbutton.y, (e.type == ButtonPress));
+            if (0 == ret) {
+              // Any unclaimed input can be handled in this block.
             }
           }
         }

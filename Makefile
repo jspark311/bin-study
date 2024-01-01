@@ -83,6 +83,7 @@ debug:  $(EXECUTABLE_NAME).o
 
 $(EXECUTABLE_NAME):	builddir $(EXECUTABLE_NAME).o $(LIBS_TO_BUILD)
 	$(CXX) $(CXXFLAGS) -o $(EXECUTABLE_NAME) *.o $(LIBS)
+	$(SZ) $(EXECUTABLE_NAME)
 
 $(EXECUTABLE_NAME).o: builddir
 	$(CXX) $(CXXFLAGS) $(CFLAGS) -c $(CXX_SRCS) -fno-exceptions
