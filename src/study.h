@@ -119,6 +119,6 @@ class MainGuiWindow : public C3Px11Window {
 extern IdentityUUID ident_uuid;
 extern ConfRecordValidation<StudyConfKey> main_conf;
 extern StringBuilder bin_field;   // The blob we are studying.
-
+extern StringBuilder input_path;
 
 #endif  // __BLOBSTUDY_HEADER_H__

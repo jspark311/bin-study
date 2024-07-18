@@ -594,6 +594,29 @@ int8_t MainGuiWindow::createWindow() {
     map_button_inputs(mouse_buttons, sizeof(mouse_buttons) / sizeof(mouse_buttons[0]));
     _overlay.reallocate();
 
+    if (input_path.length() > 0) {
+      file_in_ptr = new C3PFile((char*) input_path.string());
+      if (nullptr != file_in_ptr) {
+        bool should_free_file = true;
+        if (file_in_ptr->isFile() & file_in_ptr->exists()) {
+          StringBuilder file_data;
+          int32_t file_read_ret = file_in_ptr->read(&file_data);
+          if (0 < file_read_ret) {
+            should_free_file = false;
+            c3p_value_input_path.set(file_in_ptr->path());
+            bin_field.clear();
+            bin_field.concatHandoff(&file_data);
+          }
+          else c3p_log(LOG_LEV_ERROR, __PRETTY_FUNCTION__, "Path %s appears to be an empty file.", (char*) input_path.string());
+        }
+        else c3p_log(LOG_LEV_ERROR, __PRETTY_FUNCTION__, "Path %s doesn't exist or isn't a file.", (char*) input_path.string());
+        if (should_free_file) {
+          delete file_in_ptr;
+          file_in_ptr = nullptr;
+        }
+      }
+    }
+
     // Assemble the overview pane...
     main_nav_overview.add_child(&input_path_render);
     main_nav_overview.add_child(&button_paste_from_file);
@@ -902,8 +925,8 @@ int8_t MainGuiWindow::poll() {
     if (1 == _redraw_window()) {
       // TODO: We aren't flexing the TimeSeries render here. But we should still
       //   capture some render and processing timing stats for internals.
-      // if (1 == test_filter_0.feedFilter(_redraw_timer.lastTime())) {
-      //   test_filter_stdev.feedFilter(test_filter_0.stdev());
+      // if (1 == test_filter_0.feedSeries(_redraw_timer.lastTime())) {
+      //   test_filter_stdev.feedSeries(test_filter_0.stdev());
       // }
     }
   }
